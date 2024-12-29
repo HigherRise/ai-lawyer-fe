@@ -1317,7 +1317,7 @@ export default function DemoPage() {
                 data-v-1d260e0e=""
               ></rect>
             </svg>
-            <figure
+            <figures
               className="absolute md:top-1/2 ml-[-380px] md:ml-[0px] md:-mt-[240px] left-1/2 grid transform scale-[0.5] sm:scale-[0.6] md:scale-[130%] w-[760px] h-[540px] bg-[#f5f7f9] text-[9px] origin-[50%_15%] md:origin-[50%_25%] rounded-[15px] overflow-hidden p-2 z-20"
               style={{
                 grid: "100%/repeat(1,calc(5px * 28)) 1fr",
@@ -2164,7 +2164,7 @@ export default function DemoPage() {
                   </div>
                 )}
               </div>
-            </figure>
+            </figures>
           </div>
         </div>
       )}
