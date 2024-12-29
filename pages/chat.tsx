@@ -1,11 +1,8 @@
 import { useState, useRef, useEffect } from "react";
 import { motion } from "framer-motion";
 import {
-  HiOutlineChatAlt,
-  HiOutlineDocumentText,
   HiOutlinePaperClip,
   HiOutlineArrowRight,
-  HiOutlinePlus,
   HiOutlinePencilAlt,
 } from "react-icons/hi";
 
