@@ -1,6 +1,6 @@
 import { AnimatePresence, motion } from "framer-motion";
 import { RadioGroup } from "@headlessui/react";
-import { v4 as uuid } from "uuid";
+import { uuid } from "uuidv4";
 import Link from "next/link";
 import { useRef, useState, useEffect, useCallback } from "react";
 import Webcam from "react-webcam";
@@ -16,7 +16,8 @@ const questions = [
   {
     id: 2,
     name: "High-Stakes Cases",
-    description: "Significant financial, reputational, or criminal consequences.",
+    description:
+      "Significant financial, reputational, or criminal consequences.",
     difficulty: "Medium",
   },
 ];
@@ -183,10 +184,13 @@ export default function DemoPage() {
 
       // This reads the converted file from the file system
       const fileData = ffmpeg.FS("readFile", `${unique_id}.mp3`);
-      // This creates a new file from the raw data
-      const output = new File([fileData.buffer], `${unique_id}.mp3`, {
-        type: "audio/mp3",
-      });
+      const output = new File(
+        [new Uint8Array(fileData.buffer)],
+        `${unique_id}.mp3`,
+        {
+          type: "audio/mpeg",
+        }
+      );
 
       const formData = new FormData();
       formData.append("file", output, `${unique_id}.mp3`);
@@ -493,7 +497,8 @@ export default function DemoPage() {
                               <source
                                 src={
                                   selectedInterviewer.name === "John"
-                                    ? selected.name === "BehaviStraightforward Casesoral"
+                                    ? selected.name ===
+                                      "BehaviStraightforward Casesoral"
                                       ? "https://liftoff-public.s3.amazonaws.com/DemoInterviewMale.mp4"
                                       : "https://liftoff-public.s3.amazonaws.com/JohnTechnical.mp4"
                                     : selectedInterviewer.name === "Richard"
@@ -789,8 +794,8 @@ export default function DemoPage() {
                     Select a case difficult level
                   </h2>
                   <p className="text-[14px] leading-[20px] text-[#1a2b3b] font-normal my-4">
-                    We have hundreds of case difficultly categorized from top solved cases.
-                    Choose a level to get started.
+                    We have hundreds of case difficultly categorized from top
+                    solved cases. Choose a level to get started.
                   </p>
                   <div>
                     <RadioGroup value={selected} onChange={setSelected}>
@@ -1317,7 +1322,7 @@ export default function DemoPage() {
                 data-v-1d260e0e=""
               ></rect>
             </svg>
-            <figures
+            <figure
               className="absolute md:top-1/2 ml-[-380px] md:ml-[0px] md:-mt-[240px] left-1/2 grid transform scale-[0.5] sm:scale-[0.6] md:scale-[130%] w-[760px] h-[540px] bg-[#f5f7f9] text-[9px] origin-[50%_15%] md:origin-[50%_25%] rounded-[15px] overflow-hidden p-2 z-20"
               style={{
                 grid: "100%/repeat(1,calc(5px * 28)) 1fr",
@@ -1581,7 +1586,9 @@ export default function DemoPage() {
 
                     <ul className="mt-[28px] flex">
                       <li className="list-none max-w-[400px]">
-                        {"Explore our comprehensive question bank to find the answers you need. If you can’t find a specific question, easily add it to the 'My Questions' section."}
+                        {
+                          "Explore our comprehensive question bank to find the answers you need. If you can’t find a specific question, easily add it to the 'My Questions' section."
+                        }
                       </li>
                     </ul>
                   </div>
@@ -2164,7 +2171,7 @@ export default function DemoPage() {
                   </div>
                 )}
               </div>
-            </figures>
+            </figure>
           </div>
         </div>
       )}
