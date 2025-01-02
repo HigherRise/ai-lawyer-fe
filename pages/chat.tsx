@@ -5,6 +5,11 @@ import {
   HiOutlineArrowRight,
   HiOutlinePencilAlt,
 } from "react-icons/hi";
+import { SyncLoader, BeatLoader } from "react-spinners";
+import axios from "axios";
+import ReactMarkdown from "react-markdown";
+import { format } from "date-fns";
+import API_BASE_URL from "@/utils/constants";
 
 function classNames(...classes: string[]): string {
   return classes.filter(Boolean).join(" ");
@@ -18,25 +23,118 @@ type Message = {
 export default function ChatPage() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [message, setMessage] = useState<string>("");
-  const [history, setHistory] = useState<string[]>([
-    "What are the steps to register a company?",
-    "Explain the appeals process.",
-  ]);
+  const [history, setHistory] = useState<string[][]>([]);
+  const [chats, setChats] = useState<
+    { id: string; title: string; date: string }[]
+  >([]);
+  const [currentChatId, setCurrentChatId] = useState<string>("");
+  const [loading, setLoading] = useState<boolean>(false);
+  const [loadingChats, setLoadingChats] = useState<boolean>(true);
+
   const messageEndRef = useRef<HTMLDivElement | null>(null);
 
-  const sendMessage = (): void => {
+  useEffect(() => {
+    setLoadingChats(true);
+    const savedChats = JSON.parse(localStorage.getItem("chats") || "[]");
+    const savedHistory = JSON.parse(localStorage.getItem("history") || "{}");
+
+    setChats(savedChats);
+    if (savedChats.length > 0) {
+      setCurrentChatId(savedChats[0].id);
+      setHistory(savedHistory[savedChats[0].id] || []);
+    }
+    setLoadingChats(false);
+  }, []);
+
+  useEffect(() => {
+    localStorage.setItem("chats", JSON.stringify(chats));
+
+    const allHistories = JSON.parse(localStorage.getItem("history") || "{}");
+    allHistories[currentChatId] = history;
+    localStorage.setItem("history", JSON.stringify(allHistories));
+  }, [chats, history, currentChatId]);
+
+  const sendMessage = async (): Promise<void> => {
     if (!message.trim()) return;
+
     const newMessage: Message = { sender: "user", text: message };
     setMessages((prev) => [...prev, newMessage]);
+    setHistory((prev) => [...prev, [message]]);
     setMessage("");
 
-    setTimeout(() => {
-      const aiMessage: Message = {
-        sender: "ai",
-        text: `AI Lawyer: ${newMessage.text}`,
+    if (!chats.find((chat) => chat.id === currentChatId)) {
+      const newChat = {
+        id: currentChatId,
+        title: message,
+        date: new Date().toISOString(),
       };
-      setMessages((prev) => [...prev, aiMessage]);
-    }, 1000);
+      setChats((prev) => [...prev, newChat]);
+    } else {
+      setChats((prev) => {
+        return prev.map((chat) =>
+          chat.id === currentChatId && chat.title.startsWith("Chat")
+            ? { ...chat, title: message }
+            : chat
+        );
+      });
+    }
+
+    setLoading(true);
+
+    try {
+      const response = await axios.post(`${API_BASE_URL}/ai/answer-question`, {
+        question: message,
+        history,
+      });
+
+      const { answer } = response.data;
+
+      if (answer) {
+        const aiMessage: Message = {
+          sender: "ai",
+          text: answer,
+        };
+        setMessages((prev) => [...prev, aiMessage]);
+        setHistory((prev) => {
+          const updated = [...prev];
+          updated[updated.length - 1][1] = answer;
+          return updated;
+        });
+      }
+    } catch (error) {
+      console.error("Failed to fetch answer:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const createNewChat = () => {
+    const newChatId = Date.now().toString();
+    setChats((prev) => [
+      ...prev,
+      {
+        id: newChatId,
+        title: `New Chat`,
+        date: new Date().toISOString(),
+      },
+    ]);
+    setCurrentChatId(newChatId);
+    setMessages([]);
+    setHistory([]);
+  };
+
+  const switchChat = (chatId: string) => {
+    setCurrentChatId(chatId);
+    const allHistories = JSON.parse(localStorage.getItem("history") || "{}");
+    setHistory(allHistories[chatId] || []);
+    setMessages(
+      allHistories[chatId]
+        ?.map(([userMsg, aiMsg]: [string, string]) => [
+          { sender: "user", text: userMsg },
+          { sender: "ai", text: aiMsg },
+        ])
+        .flat() || []
+    );
   };
 
   useEffect(() => {
@@ -48,6 +146,13 @@ export default function ChatPage() {
       sendMessage();
     }
   };
+
+  const groupedChats = chats.reduce((acc, chat) => {
+    const monthYear = format(new Date(chat.date), "MMMM yyyy");
+    if (!acc[monthYear]) acc[monthYear] = [];
+    acc[monthYear].push(chat);
+    return acc;
+  }, {} as Record<string, { id: string; title: string; date: string }[]>);
 
   return (
     <div className="relative flex justify-center items-center bg-[#F2F3F5] min-h-screen">
@@ -68,31 +173,51 @@ export default function ChatPage() {
       </svg>
 
       <div className="relative z-10 w-full max-w-6xl bg-white shadow-lg rounded-lg overflow-hidden flex max-h-[85vh] min-h-[85vh]">
-        <div className="w-64 bg-gray-50 border-r border-gray-300 p-6">
-          <div className="flex justify-between items-center mb-4">
+        <div className="p-6 border-r border-gray-300 min-w-64 bg-gray-50">
+          <div className="flex items-center justify-between mb-4">
             <h3 className="text-lg font-semibold">History</h3>
             <button
-              className="p-2 bg-gray-200 text-gray-600 rounded-full hover:bg-gray-300"
+              className="p-2 text-gray-600 bg-gray-200 rounded-full hover:bg-gray-300"
               title="Create new chat"
-              onClick={() => setMessages([])}
+              onClick={createNewChat}
             >
               <HiOutlinePencilAlt className="text-xl" />
             </button>
           </div>
-          <ul className="space-y-2 text-sm text-gray-700">
-            {history.map((item, idx) => (
-              <li
-                key={idx}
-                className="cursor-pointer hover:text-blue-500"
-                onClick={() => setMessage(item)}
-              >
-                {item}
-              </li>
-            ))}
-          </ul>
+          {loadingChats ? (
+            <div className="flex items-center justify-center">
+              <BeatLoader color="#1E2B3A" />
+            </div>
+          ) : (
+            <ul className="space-y-4 text-sm text-gray-700">
+              {Object.entries(groupedChats).map(([monthYear, chats]) => (
+                <li key={monthYear}>
+                  <h4 className="mb-2 font-bold text-gray-900 text-md">
+                    {monthYear}
+                  </h4>
+                  <ul className="space-y-2">
+                    {chats.map((chat) => (
+                      <li
+                        key={chat.id}
+                        className={classNames(
+                          "cursor-pointer hover:text-blue-500",
+                          chat.id === currentChatId
+                            ? "text-blue-500 font-semibold"
+                            : ""
+                        )}
+                        onClick={() => switchChat(chat.id)}
+                      >
+                        {chat.title}
+                      </li>
+                    ))}
+                  </ul>
+                </li>
+              ))}
+            </ul>
+          )}
         </div>
 
-        <div className="flex flex-col flex-grow relative">
+        <div className="relative flex flex-col flex-grow">
           <div className="p-6 border-b border-gray-300">
             <h1 className="text-2xl font-bold">AI Lawyer</h1>
             <p className="text-sm text-gray-500">
@@ -101,8 +226,8 @@ export default function ChatPage() {
             </p>
           </div>
 
-          <div className="flex-1 overflow-y-auto p-6 space-y-4">
-            <div className="text-center text-gray-600 text-lg font-semibold">
+          <div className="flex-1 p-6 space-y-4 overflow-y-auto">
+            <div className="text-lg font-semibold text-center text-gray-600">
               How can we assist you today?
             </div>
             {messages.map((msg, idx) => (
@@ -117,15 +242,20 @@ export default function ChatPage() {
                     : "mr-auto bg-[#f5f7f9] text-gray-800 p-3 rounded-md shadow-none max-w-[60%]"
                 }
               >
-                {msg.text}
+                <ReactMarkdown>{msg.text}</ReactMarkdown>
               </motion.div>
             ))}
+            {loading && (
+              <div className="flex items-center justify-start ml-[5%]">
+                <SyncLoader color="#D3D3D3" size={10} speedMultiplier={0.6} />
+              </div>
+            )}
             <div ref={messageEndRef} />
           </div>
 
           <div className="p-6 bg-gray-50">
             <div className="flex items-center space-x-4">
-              <label className="p-2 bg-gray-200 text-gray-600 rounded-full hover:bg-gray-300 cursor-pointer">
+              <label className="p-2 text-gray-600 bg-gray-200 rounded-full cursor-pointer hover:bg-gray-300">
                 <HiOutlinePaperClip className="text-xl" />
                 <input
                   type="file"
@@ -157,7 +287,7 @@ export default function ChatPage() {
         </div>
       </div>
 
-      <div className="absolute bottom-0 left-0 right-0 p-4 bg-gray-100 text-center text-sm text-gray-500">
+      <div className="absolute bottom-0 left-0 right-0 p-4 text-sm text-center text-gray-500 bg-gray-100">
         © {new Date().getFullYear()} HighRise Group Ltd. All rights reserved.
       </div>
     </div>
