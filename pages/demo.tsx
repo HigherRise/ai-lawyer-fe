@@ -1,6 +1,6 @@
 import { AnimatePresence, motion } from "framer-motion";
 import { RadioGroup } from "@headlessui/react";
-import { v4 as uuid } from "uuid";
+import { uuid } from "uuidv4";
 import Link from "next/link";
 import { useRef, useState, useEffect, useCallback } from "react";
 import Webcam from "react-webcam";
@@ -16,7 +16,8 @@ const questions = [
   {
     id: 2,
     name: "High-Stakes Cases",
-    description: "Significant financial, reputational, or criminal consequences.",
+    description:
+      "Significant financial, reputational, or criminal consequences.",
     difficulty: "Medium",
   },
 ];
@@ -183,10 +184,13 @@ export default function DemoPage() {
 
       // This reads the converted file from the file system
       const fileData = ffmpeg.FS("readFile", `${unique_id}.mp3`);
-      // This creates a new file from the raw data
-      const output = new File([fileData.buffer], `${unique_id}.mp3`, {
-        type: "audio/mp3",
-      });
+      const output = new File(
+        [new Uint8Array(fileData.buffer)],
+        `${unique_id}.mp3`,
+        {
+          type: "audio/mpeg",
+        }
+      );
 
       const formData = new FormData();
       formData.append("file", output, `${unique_id}.mp3`);
@@ -335,7 +339,7 @@ export default function DemoPage() {
                   duration: 0.15,
                   ease: [0.23, 1, 0.82, 1],
                 }}
-                className="flex flex-col md:flex-row items-center mt-2 md:mt-4 md:justify-between space-y-1 md:space-y-0"
+                className="flex flex-col items-center mt-2 space-y-1 md:flex-row md:mt-4 md:justify-between md:space-y-0"
               >
                 <div className="flex flex-row items-center space-x-1">
                   <svg
@@ -399,13 +403,13 @@ export default function DemoPage() {
                   duration: 0.15,
                   ease: [0.23, 1, 0.82, 1],
                 }}
-                className="mt-8 flex flex-col"
+                className="flex flex-col mt-8"
               >
                 <div>
                   <h2 className="text-xl font-semibold text-left text-[#1D2B3A] mb-2">
                     Transcript
                   </h2>
-                  <p className="prose prose-sm max-w-none">
+                  <p className="prose-sm prose max-w-none">
                     {transcript.length > 0
                       ? transcript
                       : "Don't think you said anything. Want to try again?"}
@@ -416,7 +420,7 @@ export default function DemoPage() {
                     Feedback
                   </h2>
                   <div className="mt-4 text-sm flex gap-2.5 rounded-lg border border-[#EEEEEE] bg-[#FAFAFA] p-4 leading-6 text-gray-900 min-h-[100px]">
-                    <p className="prose prose-sm max-w-none">
+                    <p className="prose-sm prose max-w-none">
                       {generatedFeedback}
                     </p>
                   </div>
@@ -449,7 +453,7 @@ export default function DemoPage() {
                     className="relative aspect-[16/9] w-full max-w-[1080px] overflow-hidden bg-[#1D2B3A] rounded-lg ring-1 ring-gray-900/5 shadow-md"
                   >
                     {!cameraLoaded && (
-                      <div className="text-white absolute top-1/2 left-1/2 z-20 flex items-center">
+                      <div className="absolute z-20 flex items-center text-white top-1/2 left-1/2">
                         <svg
                           className="animate-spin h-4 w-4 text-white mx-auto my-0.5"
                           xmlns="http://www.w3.org/2000/svg"
@@ -472,15 +476,15 @@ export default function DemoPage() {
                         </svg>
                       </div>
                     )}
-                    <div className="relative z-10 h-full w-full rounded-lg">
-                      <div className="absolute top-5 lg:top-10 left-5 lg:left-10 z-20">
+                    <div className="relative z-10 w-full h-full rounded-lg">
+                      <div className="absolute z-20 top-5 lg:top-10 left-5 lg:left-10">
                         <span className="inline-flex items-center rounded-md bg-gray-100 px-2.5 py-0.5 text-sm font-medium text-gray-800">
                           {new Date(seconds * 1000).toISOString().slice(14, 19)}
                         </span>
                       </div>
                       {isVisible && ( // If the video is visible (on screen) we show it
                         <div className="block absolute top-[10px] sm:top-[20px] lg:top-[40px] left-auto right-[10px] sm:right-[20px] md:right-10 h-[80px] sm:h-[140px] md:h-[180px] aspect-video rounded z-20">
-                          <div className="h-full w-full aspect-video rounded md:rounded-lg lg:rounded-xl">
+                          <div className="w-full h-full rounded aspect-video md:rounded-lg lg:rounded-xl">
                             <video
                               id="question-video"
                               onEnded={() => setVideoEnded(true)}
@@ -493,7 +497,8 @@ export default function DemoPage() {
                               <source
                                 src={
                                   selectedInterviewer.name === "John"
-                                    ? selected.name === "BehaviStraightforward Casesoral"
+                                    ? selected.name ===
+                                      "BehaviStraightforward Casesoral"
                                       ? "https://liftoff-public.s3.amazonaws.com/DemoInterviewMale.mp4"
                                       : "https://liftoff-public.s3.amazonaws.com/JohnTechnical.mp4"
                                     : selectedInterviewer.name === "Richard"
@@ -528,7 +533,7 @@ export default function DemoPage() {
                       />
                     </div>
                     {loading && (
-                      <div className="absolute flex h-full w-full items-center justify-center">
+                      <div className="absolute flex items-center justify-center w-full h-full">
                         <div className="relative h-[112px] w-[112px] rounded-lg object-cover text-[2rem]">
                           <div className="flex h-[112px] w-[112px] items-center justify-center rounded-[0.5rem] bg-[#4171d8] !text-white">
                             Loading...
@@ -551,7 +556,7 @@ export default function DemoPage() {
                               >
                                 <svg
                                   xmlns="http://www.w3.org/2000/svg"
-                                  className="h-5 w-5 mx-auto"
+                                  className="w-5 h-5 mx-auto"
                                   fill="none"
                                   viewBox="0 0 24 24"
                                   stroke="currentColor"
@@ -590,7 +595,7 @@ export default function DemoPage() {
                                     {isSubmitting ? (
                                       <div className="flex items-center justify-center gap-x-2">
                                         <svg
-                                          className="animate-spin h-5 w-5 text-slate-50 mx-auto"
+                                          className="w-5 h-5 mx-auto animate-spin text-slate-50"
                                           xmlns="http://www.w3.org/2000/svg"
                                           fill="none"
                                           viewBox="0 0 24 24"
@@ -644,20 +649,20 @@ export default function DemoPage() {
                           </>
                         ) : (
                           <div className="absolute bottom-[6px] md:bottom-5 left-5 right-5">
-                            <div className="lg:mt-4 flex flex-col items-center justify-center gap-2">
+                            <div className="flex flex-col items-center justify-center gap-2 lg:mt-4">
                               {capturing ? (
                                 <div
                                   id="stopTimer"
                                   onClick={handleStopCaptureClick}
-                                  className="flex h-10 w-10 flex-col items-center justify-center rounded-full bg-transparent text-white hover:shadow-xl ring-4 ring-white  active:scale-95 scale-100 duration-75 cursor-pointer"
+                                  className="flex flex-col items-center justify-center w-10 h-10 text-white duration-75 scale-100 bg-transparent rounded-full cursor-pointer hover:shadow-xl ring-4 ring-white active:scale-95"
                                 >
-                                  <div className="h-5 w-5 rounded bg-red-500 cursor-pointer"></div>
+                                  <div className="w-5 h-5 bg-red-500 rounded cursor-pointer"></div>
                                 </div>
                               ) : (
                                 <button
                                   id="startTimer"
                                   onClick={handleStartCaptureClick}
-                                  className="flex h-8 w-8 sm:h-8 sm:w-8 flex-col items-center justify-center rounded-full bg-red-500 text-white hover:shadow-xl ring-4 ring-white ring-offset-gray-500 ring-offset-2 active:scale-95 scale-100 duration-75"
+                                  className="flex flex-col items-center justify-center w-8 h-8 text-white duration-75 scale-100 bg-red-500 rounded-full sm:h-8 sm:w-8 hover:shadow-xl ring-4 ring-white ring-offset-gray-500 ring-offset-2 active:scale-95"
                                 ></button>
                               )}
                               <div className="w-12"></div>
@@ -667,7 +672,7 @@ export default function DemoPage() {
                       </div>
                     )}
                     <div
-                      className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-20 text-5xl text-white font-semibold text-center"
+                      className="absolute z-20 text-5xl font-semibold text-center text-white transform -translate-x-1/2 -translate-y-1/2 top-1/2 left-1/2"
                       id="countdown"
                     ></div>
                   </motion.div>
@@ -679,7 +684,7 @@ export default function DemoPage() {
                       duration: 0.15,
                       ease: [0.23, 1, 0.82, 1],
                     }}
-                    className="flex flex-row space-x-1 mt-4 items-center"
+                    className="flex flex-row items-center mt-4 space-x-1"
                   >
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
@@ -712,7 +717,7 @@ export default function DemoPage() {
                     }}
                     className="relative md:aspect-[16/9] w-full max-w-[1080px] overflow-hidden bg-[#1D2B3A] rounded-lg ring-1 ring-gray-900/5 shadow-md flex flex-col items-center justify-center"
                   >
-                    <p className="text-white font-medium text-lg text-center max-w-3xl">
+                    <p className="max-w-3xl text-lg font-medium text-center text-white">
                       Camera permission is denied. We don{`'`}t store your
                       attempts anywhere, but we understand not wanting to give
                       us access to your camera. Try again by opening this page
@@ -720,7 +725,7 @@ export default function DemoPage() {
                       browser settings{`)`}.
                     </p>
                   </motion.div>
-                  <div className="flex flex-row space-x-4 mt-8 justify-end">
+                  <div className="flex flex-row justify-end mt-8 space-x-4">
                     <button
                       onClick={() => setStep(1)}
                       className="group max-w-[200px] rounded-full px-4 py-2 text-[13px] font-semibold transition-all flex items-center justify-center bg-[#f5f7f9] text-[#1E2B3A] no-underline active:scale-95 scale-100 duration-75"
@@ -770,9 +775,9 @@ export default function DemoPage() {
           )}
         </div>
       ) : (
-        <div className="flex flex-col md:flex-row w-full md:overflow-hidden">
+        <div className="flex flex-col w-full md:flex-row md:overflow-hidden">
           <div className="w-full min-h-[60vh] md:w-1/2 md:h-screen flex flex-col px-4 pt-2 pb-8 md:px-0 md:py-2 bg-[#FCFCFC] justify-center">
-            <div className="h-full w-full items-center justify-center flex flex-col">
+            <div className="flex flex-col items-center justify-center w-full h-full">
               {step === 1 ? (
                 <motion.div
                   initial={{ opacity: 0, y: 40 }}
@@ -783,14 +788,14 @@ export default function DemoPage() {
                     duration: 0.95,
                     ease: [0.165, 0.84, 0.44, 1],
                   }}
-                  className="max-w-lg mx-auto px-4 lg:px-0"
+                  className="max-w-lg px-4 mx-auto lg:px-0"
                 >
                   <h2 className="text-4xl font-bold text-[#1E2B3A]">
                     Select a case difficult level
                   </h2>
                   <p className="text-[14px] leading-[20px] text-[#1a2b3b] font-normal my-4">
-                    We have hundreds of case difficultly categorized from top solved cases.
-                    Choose a level to get started.
+                    We have hundreds of case difficultly categorized from top
+                    solved cases. Choose a level to get started.
                   </p>
                   <div>
                     <RadioGroup value={selected} onChange={setSelected}>
@@ -836,9 +841,9 @@ export default function DemoPage() {
                                 </span>
                                 <RadioGroup.Description
                                   as="span"
-                                  className="flex text-sm ml-4 mt-0 flex-col text-right items-center justify-center"
+                                  className="flex flex-col items-center justify-center mt-0 ml-4 text-sm text-right"
                                 >
-                                  <span className=" text-gray-500">
+                                  <span className="text-gray-500 ">
                                     {question.difficulty === "Easy" ? (
                                       <svg
                                         className="h-full w-[16px]"
@@ -983,7 +988,7 @@ export default function DemoPage() {
                     duration: 0.95,
                     ease: [0.165, 0.84, 0.44, 1],
                   }}
-                  className="max-w-lg mx-auto px-4 lg:px-0"
+                  className="max-w-lg px-4 mx-auto lg:px-0"
                 >
                   <h2 className="text-4xl font-bold text-[#1E2B3A]">
                     Choose An AI lawyer
@@ -1039,9 +1044,9 @@ export default function DemoPage() {
                                 </span>
                                 <RadioGroup.Description
                                   as="span"
-                                  className="flex text-sm ml-4 mt-0 flex-col text-right items-center justify-center"
+                                  className="flex flex-col items-center justify-center mt-0 ml-4 text-sm text-right"
                                 >
-                                  <span className=" text-gray-500">
+                                  <span className="text-gray-500 ">
                                     <svg
                                       className="w-[28px] h-full"
                                       viewBox="0 0 38 30"
@@ -1317,7 +1322,7 @@ export default function DemoPage() {
                 data-v-1d260e0e=""
               ></rect>
             </svg>
-            <figures
+            <figure
               className="absolute md:top-1/2 ml-[-380px] md:ml-[0px] md:-mt-[240px] left-1/2 grid transform scale-[0.5] sm:scale-[0.6] md:scale-[130%] w-[760px] h-[540px] bg-[#f5f7f9] text-[9px] origin-[50%_15%] md:origin-[50%_25%] rounded-[15px] overflow-hidden p-2 z-20"
               style={{
                 grid: "100%/repeat(1,calc(5px * 28)) 1fr",
@@ -1325,20 +1330,20 @@ export default function DemoPage() {
                   "0 192px 136px rgba(26,43,59,.23),0 70px 50px rgba(26,43,59,.16),0 34px 24px rgba(26,43,59,.13),0 17px 12px rgba(26,43,59,.1),0 7px 5px rgba(26,43,59,.07), 0 50px 100px -20px rgb(50 50 93 / 25%), 0 30px 60px -30px rgb(0 0 0 / 30%), inset 0 -2px 6px 0 rgb(10 37 64 / 35%)",
               }}
             >
-              <div className="z-20 absolute h-full w-full bg-transparent cursor-default"></div>
+              <div className="absolute z-20 w-full h-full bg-transparent cursor-default"></div>
               <div
                 className="bg-white flex flex-col text-[#1a2b3b] p-[18px] rounded-lg relative"
                 style={{ boxShadow: "inset -1px 0 0 #fff" }}
               >
                 <ul className="mb-auto list-none">
-                  <li className="list-none flex items-center">
+                  <li className="flex items-center list-none">
                     <p className="text-[12px] font-extrabold text-[#1E293B]">
                       AI LAWYER
                     </p>
                   </li>
                   <li className="mt-4 list-none flex items-center rounded-[9px] text-gray-900 py-[2px]">
                     <svg
-                      className="h-4 w-4 text-gray-700"
+                      className="w-4 h-4 text-gray-700"
                       fill="none"
                       viewBox="0 0 24 24"
                     >
@@ -1371,7 +1376,7 @@ export default function DemoPage() {
                     <svg
                       fill="none"
                       viewBox="0 0 24 24"
-                      className="h-4 w-4 text-gray-700"
+                      className="w-4 h-4 text-gray-700"
                     >
                       <path
                         stroke="currentColor"
@@ -1395,7 +1400,7 @@ export default function DemoPage() {
                         height="24"
                         fill="none"
                         viewBox="0 0 24 24"
-                        className="w-3 h-3 stroke-current fill-transparent rotate-180 transform"
+                        className="w-3 h-3 transform rotate-180 stroke-current fill-transparent"
                       >
                         <path
                           stroke="currentColor"
@@ -1430,7 +1435,7 @@ export default function DemoPage() {
                   </li>
                   <li className="mt-1 list-none flex items-center rounded-[9px] text-gray-900 py-[4px]">
                     <svg
-                      className="h-4 w-4 text-gray-700"
+                      className="w-4 h-4 text-gray-700"
                       fill="none"
                       viewBox="0 0 24 24"
                     >
@@ -1453,7 +1458,7 @@ export default function DemoPage() {
                   </li>
                   <li className="mt-1 list-none flex items-center rounded-[9px] text-gray-900 py-[4px]">
                     <svg
-                      className="h-4 w-4 text-gray-700"
+                      className="w-4 h-4 text-gray-700"
                       fill="none"
                       viewBox="0 0 24 24"
                     >
@@ -1492,7 +1497,7 @@ export default function DemoPage() {
                   </li>
                   <li className="mt-1 list-none flex items-center rounded-[9px] text-gray-900 py-[4px]">
                     <svg
-                      className="h-4 w-4 text-gray-700"
+                      className="w-4 h-4 text-gray-700"
                       fill="none"
                       viewBox="0 0 24 24"
                     >
@@ -1515,7 +1520,7 @@ export default function DemoPage() {
                   </li>
                   <li className="mt-1 list-none flex items-center rounded-[9px] text-gray-900 py-[4px]">
                     <svg
-                      className="h-4 w-4 text-gray-700"
+                      className="w-4 h-4 text-gray-700"
                       fill="none"
                       viewBox="0 0 24 24"
                     >
@@ -1547,7 +1552,7 @@ export default function DemoPage() {
                       Richard Monroe
                     </p>
                     <div className="ml-auto">
-                      <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24">
+                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24">
                         <path
                           fill="currentColor"
                           d="M13 12C13 12.5523 12.5523 13 12 13C11.4477 13 11 12.5523 11 12C11 11.4477 11.4477 11 12 11C12.5523 11 13 11.4477 13 12Z"
@@ -1581,7 +1586,9 @@ export default function DemoPage() {
 
                     <ul className="mt-[28px] flex">
                       <li className="list-none max-w-[400px]">
-                        {"Explore our comprehensive question bank to find the answers you need. If you can’t find a specific question, easily add it to the 'My Questions' section."}
+                        {
+                          "Explore our comprehensive question bank to find the answers you need. If you can’t find a specific question, easily add it to the 'My Questions' section."
+                        }
                       </li>
                     </ul>
                   </div>
@@ -1665,7 +1672,7 @@ export default function DemoPage() {
                     ) : (
                       <div className="absolute top-6 left-6 w-[30%] aspect-video bg-gray-700 rounded"></div>
                     )}
-                    <div className="absolute bottom-10 left-1/2 transform -translate-x-1/2 translate-y-1/2 w-8 h-8 md:w-12 md:h-12 bg-red-400 ring-4 ring-white rounded-full"></div>
+                    <div className="absolute w-8 h-8 transform -translate-x-1/2 translate-y-1/2 bg-red-400 rounded-full bottom-10 left-1/2 md:w-12 md:h-12 ring-4 ring-white"></div>
                   </motion.div>
                 )}
                 {step === 1 && (
@@ -1695,13 +1702,13 @@ export default function DemoPage() {
                       exit={{ opacity: 0, y: -10 }}
                       transition={{ duration: 0.5, ease: [0.23, 1, 0.32, 1] }}
                       key={selected.id}
-                      className="mt-3 grid grid-cols-3 xl:grid-cols-3 gap-2"
+                      className="grid grid-cols-3 gap-2 mt-3 xl:grid-cols-3"
                     >
-                      <li className="list-none relative flex items-stretch text-left">
-                        <div className="group relative w-full">
+                      <li className="relative flex items-stretch text-left list-none">
+                        <div className="relative w-full group">
                           <div className="relative mb-2 flex h-full max-h-[200px] w-full cursor-pointer items-start justify-between rounded-lg p-2 font-medium transition duration-100">
                             <div className="absolute inset-0 rounded-lg ring-1 ring-inset ring-zinc-900/[7.5%] group-hover:ring-zinc-900/10"></div>
-                            <div className="relative flex h-full flex-col overflow-hidden">
+                            <div className="relative flex flex-col h-full overflow-hidden">
                               <div className="flex items-center text-left text-[#1a2b3b]">
                                 <p>Why this company?</p>
                               </div>
@@ -1713,9 +1720,9 @@ export default function DemoPage() {
                                   Product Management
                                 </p>
                                 <p className="inline-flex items-center justify-center truncate rounded-full border-[0.5px] border-[#D0E7DC] bg-[#F3FAF1] px-[3px] text-[7px] font-normal hover:bg-[#edf8ea]">
-                                  <span className="mr-1 flex items-center text-emerald-600">
+                                  <span className="flex items-center mr-1 text-emerald-600">
                                     <svg
-                                      className="h-2 w-2"
+                                      className="w-2 h-2"
                                       viewBox="0 0 24 24"
                                       fill="none"
                                       xmlns="http://www.w3.org/2000/svg"
@@ -1744,11 +1751,11 @@ export default function DemoPage() {
                           </div>
                         </div>
                       </li>
-                      <li className="list-none relative flex items-stretch text-left">
-                        <div className="group relative w-full">
+                      <li className="relative flex items-stretch text-left list-none">
+                        <div className="relative w-full group">
                           <div className="relative mb-2 flex h-full max-h-[200px] w-full cursor-pointer items-start justify-between rounded-lg p-2 font-medium transition duration-100">
                             <div className="absolute inset-0 rounded-lg ring-1 ring-inset ring-zinc-900/[7.5%] group-hover:ring-zinc-900/10"></div>
-                            <div className="relative flex h-full flex-col overflow-hidden">
+                            <div className="relative flex flex-col h-full overflow-hidden">
                               <div className="flex items-center text-left text-[#1a2b3b]">
                                 <p>What are you most proud of?</p>
                               </div>
@@ -1761,9 +1768,9 @@ export default function DemoPage() {
                                   General
                                 </p>
                                 <p className="inline-flex items-center justify-center truncate rounded-full border-[0.5px] border-[#D0E7DC] bg-[#F3FAF1] px-[3px] text-[7px] font-normal hover:bg-[#edf8ea]">
-                                  <span className="mr-1 flex items-center text-emerald-600">
+                                  <span className="flex items-center mr-1 text-emerald-600">
                                     <svg
-                                      className="h-2 w-2"
+                                      className="w-2 h-2"
                                       viewBox="0 0 24 24"
                                       fill="none"
                                       xmlns="http://www.w3.org/2000/svg"
@@ -1792,11 +1799,11 @@ export default function DemoPage() {
                           </div>
                         </div>
                       </li>
-                      <li className="list-none relative flex items-stretch text-left">
-                        <div className="group relative w-full">
+                      <li className="relative flex items-stretch text-left list-none">
+                        <div className="relative w-full group">
                           <div className="relative mb-2 flex h-full max-h-[200px] w-full cursor-pointer items-start justify-between rounded-lg p-2 font-medium transition duration-100">
                             <div className="absolute inset-0 rounded-lg ring-1 ring-inset ring-zinc-900/[7.5%] group-hover:ring-zinc-900/10"></div>
-                            <div className="relative flex h-full flex-col overflow-hidden">
+                            <div className="relative flex flex-col h-full overflow-hidden">
                               <div className="flex items-center text-left text-[#1a2b3b]">
                                 <p>Tell me about yourself</p>
                               </div>
@@ -1809,9 +1816,9 @@ export default function DemoPage() {
                                   Product Management
                                 </p>
                                 <p className="inline-flex items-center justify-center truncate rounded-full border-[0.5px] border-[#D0E7DC] bg-[#F3FAF1] px-[3px] text-[7px] font-normal hover:bg-[#edf8ea]">
-                                  <span className="mr-1 flex items-center text-emerald-600">
+                                  <span className="flex items-center mr-1 text-emerald-600">
                                     <svg
-                                      className="h-2 w-2"
+                                      className="w-2 h-2"
                                       viewBox="0 0 24 24"
                                       fill="none"
                                       xmlns="http://www.w3.org/2000/svg"
@@ -1840,11 +1847,11 @@ export default function DemoPage() {
                           </div>
                         </div>
                       </li>
-                      <li className="list-none relative flex items-stretch text-left">
-                        <div className="group relative w-full">
+                      <li className="relative flex items-stretch text-left list-none">
+                        <div className="relative w-full group">
                           <div className="relative mb-2 flex h-full max-h-[200px] w-full cursor-pointer items-start justify-between rounded-lg p-2 font-medium transition duration-100">
                             <div className="absolute inset-0 rounded-lg ring-1 ring-inset ring-zinc-900/[7.5%] group-hover:ring-zinc-900/10"></div>
-                            <div className="relative flex h-full flex-col overflow-hidden">
+                            <div className="relative flex flex-col h-full overflow-hidden">
                               <div className="flex items-center text-left text-[#1a2b3b]">
                                 <p>What are your strengths?</p>
                               </div>
@@ -1857,9 +1864,9 @@ export default function DemoPage() {
                                   Software Engineering
                                 </p>
                                 <p className="inline-flex items-center justify-center truncate rounded-full border-[0.5px] border-[#D0E7DC] bg-[#F3FAF1] px-[3px] text-[7px] font-normal hover:bg-[#edf8ea]">
-                                  <span className="mr-1 flex items-center text-emerald-600">
+                                  <span className="flex items-center mr-1 text-emerald-600">
                                     <svg
-                                      className="h-2 w-2"
+                                      className="w-2 h-2"
                                       viewBox="0 0 24 24"
                                       fill="none"
                                       xmlns="http://www.w3.org/2000/svg"
@@ -1888,11 +1895,11 @@ export default function DemoPage() {
                           </div>
                         </div>
                       </li>
-                      <li className="list-none relative flex items-stretch text-left">
-                        <div className="group relative w-full">
+                      <li className="relative flex items-stretch text-left list-none">
+                        <div className="relative w-full group">
                           <div className="relative mb-2 flex h-full max-h-[200px] w-full cursor-pointer items-start justify-between rounded-lg p-2 font-medium transition duration-100">
                             <div className="absolute inset-0 rounded-lg ring-1 ring-inset ring-zinc-900/[7.5%] group-hover:ring-zinc-900/10"></div>
-                            <div className="relative flex h-full flex-col overflow-hidden">
+                            <div className="relative flex flex-col h-full overflow-hidden">
                               <div className="flex items-center text-left text-[#1a2b3b]">
                                 <p>What are your weaknesses?</p>
                               </div>
@@ -1905,9 +1912,9 @@ export default function DemoPage() {
                                   Product Management
                                 </p>
                                 <p className="inline-flex items-center justify-center truncate rounded-full border-[0.5px] border-[#D0E7DC] bg-[#F3FAF1] px-[3px] text-[7px] font-normal hover:bg-[#edf8ea]">
-                                  <span className="mr-1 flex items-center text-emerald-600">
+                                  <span className="flex items-center mr-1 text-emerald-600">
                                     <svg
-                                      className="h-2 w-2"
+                                      className="w-2 h-2"
                                       viewBox="0 0 24 24"
                                       fill="none"
                                       xmlns="http://www.w3.org/2000/svg"
@@ -1944,13 +1951,13 @@ export default function DemoPage() {
                       exit={{ opacity: 0, y: -10 }}
                       transition={{ duration: 0.5, ease: [0.23, 1, 0.32, 1] }}
                       key={selected.id}
-                      className="mt-3 grid grid-cols-3 xl:grid-cols-3 gap-2"
+                      className="grid grid-cols-3 gap-2 mt-3 xl:grid-cols-3"
                     >
-                      <li className="list-none relative flex items-stretch text-left">
-                        <div className="group relative w-full">
+                      <li className="relative flex items-stretch text-left list-none">
+                        <div className="relative w-full group">
                           <div className="relative mb-2 flex h-full max-h-[200px] w-full cursor-pointer items-start justify-between rounded-lg p-2 font-medium transition duration-100">
                             <div className="absolute inset-0 rounded-lg ring-1 ring-inset ring-zinc-900/[7.5%] group-hover:ring-zinc-900/10"></div>
-                            <div className="relative flex h-full flex-col overflow-hidden">
+                            <div className="relative flex flex-col h-full overflow-hidden">
                               <div className="flex items-center text-left text-[#1a2b3b]">
                                 <p>Walk me through this function</p>
                               </div>
@@ -1963,9 +1970,9 @@ export default function DemoPage() {
                                   Software Engineering
                                 </p>
                                 <p className="inline-flex items-center justify-center truncate rounded-full border-[0.5px] border-[#D0E7DC] bg-[#F3FAF1] px-[3px] text-[7px] font-normal hover:bg-[#edf8ea]">
-                                  <span className="mr-1 flex items-center text-emerald-600">
+                                  <span className="flex items-center mr-1 text-emerald-600">
                                     <svg
-                                      className="h-2 w-2"
+                                      className="w-2 h-2"
                                       viewBox="0 0 24 24"
                                       fill="none"
                                       xmlns="http://www.w3.org/2000/svg"
@@ -1994,11 +2001,11 @@ export default function DemoPage() {
                           </div>
                         </div>
                       </li>
-                      <li className="list-none relative flex items-stretch text-left">
-                        <div className="group relative w-full">
+                      <li className="relative flex items-stretch text-left list-none">
+                        <div className="relative w-full group">
                           <div className="relative mb-2 flex h-full max-h-[200px] w-full cursor-pointer items-start justify-between rounded-lg p-2 font-medium transition duration-100">
                             <div className="absolute inset-0 rounded-lg ring-1 ring-inset ring-zinc-900/[7.5%] group-hover:ring-zinc-900/10"></div>
-                            <div className="relative flex h-full flex-col overflow-hidden">
+                            <div className="relative flex flex-col h-full overflow-hidden">
                               <div className="flex items-center text-left text-[#1a2b3b]">
                                 <p>Uber product expansion</p>
                               </div>
@@ -2011,9 +2018,9 @@ export default function DemoPage() {
                                   Product Management
                                 </p>
                                 <p className="inline-flex items-center justify-center truncate rounded-full border-[0.5px] border-[#D0E7DC] bg-[#F3FAF1] px-[3px] text-[7px] font-normal hover:bg-[#edf8ea]">
-                                  <span className="mr-1 flex items-center text-emerald-600">
+                                  <span className="flex items-center mr-1 text-emerald-600">
                                     <svg
-                                      className="h-2 w-2"
+                                      className="w-2 h-2"
                                       viewBox="0 0 24 24"
                                       fill="none"
                                       xmlns="http://www.w3.org/2000/svg"
@@ -2042,11 +2049,11 @@ export default function DemoPage() {
                           </div>
                         </div>
                       </li>
-                      <li className="list-none relative flex items-stretch text-left">
-                        <div className="group relative w-full">
+                      <li className="relative flex items-stretch text-left list-none">
+                        <div className="relative w-full group">
                           <div className="relative mb-2 flex h-full max-h-[200px] w-full cursor-pointer items-start justify-between rounded-lg p-2 font-medium transition duration-100">
                             <div className="absolute inset-0 rounded-lg ring-1 ring-inset ring-zinc-900/[7.5%] group-hover:ring-zinc-900/10"></div>
-                            <div className="relative flex h-full flex-col overflow-hidden">
+                            <div className="relative flex flex-col h-full overflow-hidden">
                               <div className="flex items-center text-left text-[#1a2b3b]">
                                 <p>Weighing an Airplane</p>
                               </div>
@@ -2058,9 +2065,9 @@ export default function DemoPage() {
                                   Brainteaser
                                 </p>
                                 <p className="inline-flex items-center justify-center truncate rounded-full border-[0.5px] border-[#D0E7DC] bg-[#F3FAF1] px-[3px] text-[7px] font-normal hover:bg-[#edf8ea]">
-                                  <span className="mr-1 flex items-center text-emerald-600">
+                                  <span className="flex items-center mr-1 text-emerald-600">
                                     <svg
-                                      className="h-2 w-2"
+                                      className="w-2 h-2"
                                       viewBox="0 0 24 24"
                                       fill="none"
                                       xmlns="http://www.w3.org/2000/svg"
@@ -2089,11 +2096,11 @@ export default function DemoPage() {
                           </div>
                         </div>
                       </li>
-                      <li className="list-none relative flex items-stretch text-left">
-                        <div className="group relative w-full">
+                      <li className="relative flex items-stretch text-left list-none">
+                        <div className="relative w-full group">
                           <div className="relative mb-2 flex h-full max-h-[200px] w-full cursor-pointer items-start justify-between rounded-lg p-2 font-medium transition duration-100">
                             <div className="absolute inset-0 rounded-lg ring-1 ring-inset ring-zinc-900/[7.5%] group-hover:ring-zinc-900/10"></div>
-                            <div className="relative flex h-full flex-col overflow-hidden">
+                            <div className="relative flex flex-col h-full overflow-hidden">
                               <div className="flex items-center text-left text-[#1a2b3b]">
                                 <p>How would you rebuild Twitter?</p>
                               </div>
@@ -2106,9 +2113,9 @@ export default function DemoPage() {
                                   Systems Design
                                 </p>
                                 <p className="inline-flex items-center justify-center truncate rounded-full border-[0.5px] border-[#D0E7DC] bg-[#F3FAF1] px-[3px] text-[7px] font-normal hover:bg-[#edf8ea]">
-                                  <span className="mr-1 flex items-center text-emerald-600">
+                                  <span className="flex items-center mr-1 text-emerald-600">
                                     <svg
-                                      className="h-2 w-2"
+                                      className="w-2 h-2"
                                       viewBox="0 0 24 24"
                                       fill="none"
                                       xmlns="http://www.w3.org/2000/svg"
@@ -2140,7 +2147,7 @@ export default function DemoPage() {
                     </motion.ul>
                   ))}
                 {step === 1 && (
-                  <div className="space-y-2 md:space-y-5 mt-auto">
+                  <div className="mt-auto space-y-2 md:space-y-5">
                     <nav
                       className="flex items-center justify-between border-t border-gray-200 bg-white px-1 py-[2px] mb-[10px]"
                       aria-label="Pagination"
@@ -2152,7 +2159,7 @@ export default function DemoPage() {
                           <span className="font-medium">500</span> results
                         </p>
                       </div>
-                      <div className="flex flex-1 justify-between sm:justify-end">
+                      <div className="flex justify-between flex-1 sm:justify-end">
                         <button className="relative inline-flex cursor-auto items-center rounded border border-gray-300 bg-white px-[4px] py-[2px]  font-medium text-[#1a2b3b] hover:bg-gray-50 disabled:opacity-50">
                           Previous
                         </button>
@@ -2164,7 +2171,7 @@ export default function DemoPage() {
                   </div>
                 )}
               </div>
-            </figures>
+            </figure>
           </div>
         </div>
       )}
