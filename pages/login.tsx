@@ -52,7 +52,7 @@ export default function LoginPage() {
         duration: 5000,
         isClosable: true,
       });
-      localStorage.setItem('access_token', response?.data?.jwt);
+      localStorage.setItem('lex_voithos_access_token', response?.data?.jwt);
       router.push('/chat');
     } catch (error: any) {
       toast({

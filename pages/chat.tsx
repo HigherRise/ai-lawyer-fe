@@ -1,63 +1,69 @@
 import { useState, useRef, useEffect } from "react";
 import { motion } from "framer-motion";
-import {
-  HiOutlineChatAlt,
-  HiOutlineDocumentText,
-  HiOutlinePaperClip,
-  HiOutlineArrowRight,
-  HiOutlinePlus,
-  HiOutlinePencilAlt,
-} from "react-icons/hi";
+import { HiOutlineArrowRight, HiOutlinePencilAlt } from "react-icons/hi";
 import { SyncLoader, BeatLoader } from "react-spinners";
 import axios from "axios";
 import ReactMarkdown from "react-markdown";
 import API_BASE_URL from "@/utils/constants";
+import { format, isToday, isYesterday } from "date-fns";
 
 function classNames(...classes: string[]): string {
   return classes.filter(Boolean).join(" ");
 }
 
 type Message = {
-  sender: "user" | "ai";
-  text: string;
+  question: string;
+  answer: string;
 };
 
-type Chat = {
-  id: string;
-  title: string;
+type HistoryEntry = {
+  _id: string;
+  question: string;
+  answer: string;
+  historyGroup: string; // yyyy-dd-mm format
   date: string;
+  createdAt: string;
+  updatedAt: string;
+};
+
+type HistoryResponse = {
+  history: Record<string, HistoryEntry[]>;
+  total: number;
 };
 
 export default function ChatPage() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [message, setMessage] = useState<string>("");
-  const [chats, setChats] = useState<Chat[]>([]);
-  const [currentChatId, setCurrentChatId] = useState<string>("");
+  const [currentChatGroup, setCurrentChatGroup] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(false);
   const [loadingChats, setLoadingChats] = useState<boolean>(true);
+  const [token, setToken] = useState<string>("");
+  const [history, setHistory] = useState<HistoryResponse>({
+    history: {},
+    total: 0,
+  });
+
   const messageEndRef = useRef<HTMLDivElement | null>(null);
 
-  const fetchHistory = async (): Promise<void> => {
+  const fetchHistory = async (accessToken: string): Promise<void> => {
     setLoadingChats(true);
     try {
-      const response = await axios.get(`${API_BASE_URL}/admin/history/user-history`, {
-        params: {
-          dateFrom: "",
-          dateTo: new Date().toISOString(),
-          page: "1",
-          limit: "100",
-          group: "month",
-        },
-      });
-
-      const historyData = response.data || [];
-      setChats(
-        historyData.map((chat: any) => ({
-          id: chat.id,
-          title: chat.title,
-          date: chat.date,
-        }))
+      const response = await axios.get(
+        `${API_BASE_URL}/admin/history/user-history`,
+        {
+          params: {
+            dateFrom: "",
+            dateTo: new Date().toISOString(),
+            page: "1",
+            limit: "100",
+            group: "month",
+          },
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+          },
+        }
       );
+      setHistory(response.data || { history: {}, total: 0 });
     } catch (error) {
       console.error("Error fetching history:", error);
     } finally {
@@ -65,32 +71,104 @@ export default function ChatPage() {
     }
   };
 
-  useEffect(() => {
-    fetchHistory();
-  }, []);
+  const formatHistoryDate = (dateString: string): string => {
+    const date = new Date(dateString);
+    if (isToday(date)) return "Today";
+    if (isYesterday(date)) return "Yesterday";
+    return format(date, "MMMM d, yyyy");
+  };
+
+  const createNewChat = (): void => {
+    const today = new Date().toISOString().split("T")[0]; // yyyy-mm-dd format
+    setHistory((prev) => {
+      const newHistory = { ...prev.history };
+      if (!newHistory[today]) {
+        newHistory[today] = [];
+      } else {
+        switchChat(today);
+      }
+      
+      const newChatId = Date.now().toString();
+      newHistory[today].push({
+        _id: newChatId,
+        question: "",
+        answer: "",
+        historyGroup: today,
+        date: new Date().toISOString(),
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      });
+      return {
+        ...prev,
+        history: newHistory,
+        total: prev.total + 1,
+      };
+    });
+
+    setCurrentChatGroup(today);
+    setMessages([]);
+  };
+
+  const switchChat = async (chatGroup: string): Promise<void> => {
+    const selectedChat = history.history[chatGroup];
+    if (selectedChat) {
+      setMessages(
+        selectedChat.map((entry) => ({
+          question: entry.question,
+          answer: entry.answer,
+        }))
+      );
+    }
+    setCurrentChatGroup(chatGroup);
+  };
 
   const sendMessage = async (): Promise<void> => {
     if (!message.trim()) return;
 
-    const newMessage: Message = { sender: "user", text: message };
+    const newMessage: Message = { question: message, answer: "" };
     setMessages((prev) => [...prev, newMessage]);
     setMessage("");
-
     setLoading(true);
 
     try {
-      const response = await axios.post(`${API_BASE_URL}/ai/answer-question`, {
-        question: message,
-      });
+      const response = await axios.post(
+        `${API_BASE_URL}/admin/ai/answer-question`,
+        { question: message },
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem(
+              "lex_voithos_access_token"
+            )}`,
+          },
+        }
+      );
 
       const { answer } = response.data;
-
       if (answer) {
-        const aiMessage: Message = {
-          sender: "ai",
-          text: answer,
-        };
-        setMessages((prev) => [...prev, aiMessage]);
+        setMessages((prev) => {
+          const updatedMessages = [...prev];
+          updatedMessages[updatedMessages.length - 1].answer = answer;
+          return updatedMessages;
+        });
+
+        setHistory((prev) => {
+          const updatedHistory = { ...prev.history };
+          if (!updatedHistory[currentChatGroup]) {
+            updatedHistory[currentChatGroup] = [];
+          }
+          const newChatId = Date.now().toString();
+          updatedHistory[currentChatGroup].push({
+            _id: newChatId,
+            question: message,
+            answer: answer,
+            historyGroup: currentChatGroup,
+            date: new Date().toISOString(),
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+          });
+
+          return { ...prev, history: updatedHistory };
+        });
       }
     } catch (error) {
       console.error("Failed to fetch answer:", error);
@@ -99,27 +177,18 @@ export default function ChatPage() {
     }
   };
 
-  const createNewChat = () => {
-    const newChatId = Date.now().toString();
-    setChats((prev) => [
-      ...prev,
-      {
-        id: newChatId,
-        title: "New Chat",
-        date: new Date().toISOString(),
-      },
-    ]);
-    setCurrentChatId(newChatId);
-    setMessages([]);
-  };
-
-  const switchChat = (chatId: string) => {
-    setCurrentChatId(chatId);
-    setMessages([]);
-  };
+  useEffect(() => {
+    const token = localStorage.getItem("lex_voithos_access_token");
+    if (token) {
+      fetchHistory(token);
+      setToken(token);
+    } else {
+      window.location.href = "/login";
+    }
+  }, []);
 
   useEffect(() => {
-    messageEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    messageEndRef.current?.scrollIntoView({ behavior: "instant" });
   }, [messages]);
 
   const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>): void => {
@@ -128,36 +197,10 @@ export default function ChatPage() {
     }
   };
 
-  const groupedChats = chats.reduce((acc, chat) => {
-    const monthYear = new Date(chat.date).toLocaleString("default", {
-      month: "long",
-      year: "numeric",
-    });
-    if (!acc[monthYear]) acc[monthYear] = [];
-    acc[monthYear].push(chat);
-    return acc;
-  }, {} as Record<string, Chat[]>);
-
   return (
     <div className="relative flex justify-center items-center bg-[#F2F3F5] min-h-screen">
-      {/* Background Noise Effect */}
-      <svg
-        style={{ filter: "contrast(125%) brightness(110%)" }}
-        className="fixed z-[1] w-full h-full opacity-[35%]"
-      >
-        <filter id="noise">
-          <feTurbulence
-            type="fractalNoise"
-            baseFrequency=".7"
-            numOctaves="3"
-            stitchTiles="stitch"
-          ></feTurbulence>
-          <feColorMatrix type="saturate" values="0"></feColorMatrix>
-        </filter>
-        <rect width="100%" height="100%" filter="url(#noise)"></rect>
-      </svg>
-
       <div className="relative z-10 w-full max-w-6xl bg-white shadow-lg rounded-lg overflow-hidden flex max-h-[85vh] min-h-[85vh]">
+        {/* Sidebar */}
         <div className="p-6 border-r border-gray-300 min-w-64 bg-gray-50">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-lg font-semibold">History</h3>
@@ -174,34 +217,27 @@ export default function ChatPage() {
               <BeatLoader color="#1E2B3A" />
             </div>
           ) : (
-            <ul className="space-y-4 text-sm text-gray-700">
-              {Object.entries(groupedChats).map(([monthYear, chats]) => (
-                <li key={monthYear}>
-                  <h4 className="mb-2 font-bold text-gray-900 text-md">
-                    {monthYear}
+            <div className="space-y-4 text-sm text-gray-700">
+              {Object.entries(history.history).map(([date, entries]) => (
+                <div key={date}>
+                  <h4
+                    className={classNames(
+                      "hover:text-blue-500",
+                      date === currentChatGroup
+                        ? "text-blue-500 font-semibold"
+                        : "",
+                      loading ? "cursor-not-allowed" : "cursor-pointer"
+                    )}
+                    onClick={loading ? () => {} : () => switchChat(date)}
+                  >
+                    {formatHistoryDate(date)}
                   </h4>
-                  <ul className="space-y-2">
-                    {chats.map((chat) => (
-                      <li
-                        key={chat.id}
-                        className={classNames(
-                          "cursor-pointer hover:text-blue-500",
-                          chat.id === currentChatId
-                            ? "text-blue-500 font-semibold"
-                            : ""
-                        )}
-                        onClick={() => switchChat(chat.id)}
-                      >
-                        {chat.title}
-                      </li>
-                    ))}
-                  </ul>
-                </li>
+                </div>
               ))}
-            </ul>
+            </div>
           )}
         </div>
-
+        {/* Chat Window */}
         <div className="relative flex flex-col flex-grow">
           <div className="p-6 border-b border-gray-300">
             <h1 className="text-2xl font-bold">AI Lawyer</h1>
@@ -210,25 +246,30 @@ export default function ChatPage() {
               worldwide.
             </p>
           </div>
-
           <div className="flex-1 p-6 space-y-4 overflow-y-auto">
-            <div className="text-lg font-semibold text-center text-gray-600">
-              How can we assist you today?
-            </div>
             {messages.map((msg, idx) => (
-              <motion.div
-                key={idx}
-                initial={{ opacity: 0, x: msg.sender === "user" ? 50 : -50 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.5 }}
-                className={
-                  msg.sender === "user"
-                    ? "ml-auto bg-[#1E2B3A] text-white p-3 rounded-md shadow-none max-w-[60%]"
-                    : "mr-auto bg-[#f5f7f9] text-gray-800 p-3 rounded-md shadow-none max-w-[60%]"
-                }
-              >
-                <ReactMarkdown>{msg.text}</ReactMarkdown>
-              </motion.div>
+              <div key={idx}>
+                {msg.question && (
+                  <motion.div
+                    initial={{ opacity: 0, x: 50 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ duration: 0.5 }}
+                    className="ml-auto bg-[#1E2B3A] text-white p-3 rounded-md shadow-none max-w-[60%]"
+                  >
+                    <ReactMarkdown>{msg.question}</ReactMarkdown>
+                  </motion.div>
+                )}
+                {msg.answer && (
+                  <motion.div
+                    initial={{ opacity: 0, x: -50 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ duration: 0.5 }}
+                    className="mr-auto bg-[#f5f7f9] text-gray-800 p-3 rounded-md shadow-none max-w-[60%]"
+                  >
+                    <ReactMarkdown>{msg.answer}</ReactMarkdown>
+                  </motion.div>
+                )}
+              </div>
             ))}
             {loading && (
               <div className="flex items-center justify-start ml-[5%]">
@@ -237,18 +278,8 @@ export default function ChatPage() {
             )}
             <div ref={messageEndRef} />
           </div>
-
-          {/* Input Area */}
           <div className="p-6 bg-gray-50">
             <div className="flex items-center space-x-4">
-              <label className="p-2 text-gray-600 bg-gray-200 rounded-full cursor-pointer hover:bg-gray-300">
-                <HiOutlinePaperClip className="text-xl" />
-                <input
-                  type="file"
-                  className="hidden"
-                  onChange={(e) => console.log(e.target.files)}
-                />
-              </label>
               <input
                 type="text"
                 value={message}
@@ -259,11 +290,7 @@ export default function ChatPage() {
               />
               <button
                 onClick={sendMessage}
-                className="group rounded-full px-4 py-2 text-[13px] font-semibold transition-all flex items-center justify-center bg-[#1E2B3A] text-white hover:[linear-gradient(0deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.1)), #0D2247] no-underline flex gap-x-2 active:scale-95 scale-100 duration-75"
-                style={{
-                  boxShadow:
-                    "0px 1px 4px rgba(13, 34, 71, 0.17), inset 0px 0px 0px 1px #061530, inset 0px 0px 0px 2px rgba(255, 255, 255, 0.1)",
-                }}
+                className="group rounded-full px-4 py-2 text-[13px] font-semibold transition-all flex items-center justify-center bg-[#1E2B3A] text-white"
               >
                 <span>Send</span>
                 <HiOutlineArrowRight className="w-5 h-5" />
@@ -271,10 +298,6 @@ export default function ChatPage() {
             </div>
           </div>
         </div>
-      </div>
-
-      <div className="absolute bottom-0 left-0 right-0 p-4 text-sm text-center text-gray-500 bg-gray-100">
-        © {new Date().getFullYear()} HighRise Group Ltd. All rights reserved.
       </div>
     </div>
   );
