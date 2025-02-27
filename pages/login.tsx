@@ -1,11 +1,72 @@
-"use client";
-
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { AnimatePresence, motion } from "framer-motion";
 import { gradient } from "@/components/Gradient";
-import { useEffect } from "react";
+import {
+  Box,
+  Button,
+  Input,
+  FormControl,
+  FormLabel,
+  FormErrorMessage,
+  VStack,
+  Heading,
+  useToast,
+  InputGroup,
+  InputLeftElement,
+} from "@chakra-ui/react";
+import { useForm } from "react-hook-form";
+import { yupResolver } from "@hookform/resolvers/yup";
+import * as yup from "yup";
+import axios from "axios";
+import { EmailIcon, UnlockIcon } from "@chakra-ui/icons";
+import API_BASE_URL from "@/utils/constants";
+import { useRouter } from "next/navigation";
 
-export default function Home() {
+const loginSchema = yup.object({
+  email: yup.string().email("Invalid email").required("Email is required"),
+  password: yup.string().min(6, "Minimum 6 characters").required("Password is required"),
+});
+
+export default function LoginPage() {
+  const [loading, setLoading] = useState(false);
+  const toast = useToast();
+  const router = useRouter();
+
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm({
+    resolver: yupResolver(loginSchema),
+  });
+
+  const onSubmit = async (data: any) => {
+    setLoading(true);
+    try {
+      const response = await axios.post(`${API_BASE_URL}/auth/login`, data);
+      toast({
+        title: "Login successful",
+        description: "Welcome back!",
+        status: "success",
+        duration: 5000,
+        isClosable: true,
+      });
+      localStorage.setItem('access_token', response?.data?.jwt);
+      router.push('/chat');
+    } catch (error: any) {
+      toast({
+        title: "Login Failed",
+        description: error.response?.data?.message || error.response?.data?.status || "An error occurred.",
+        status: "error",
+        duration: 5000,
+        isClosable: true,
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
     gradient.initGradient("#gradient-canvas");
   }, []);
@@ -29,157 +90,179 @@ export default function Home() {
           <rect width="100%" height="100%" filter="url(#noise)"></rect>
         </svg>
 
-        <main className="flex flex-col justify-center h-[90%] static md:fixed w-screen overflow-hidden grid-rows-[1fr_repeat(3,auto)_1fr] z-[100] pt-[30px] pb-[320px] px-4 md:px-20 md:py-0">
-          <motion.svg
-            xmlns="http://www.w3.org/2000/svg"
-            viewBox="0 12.899999618530273 317.1499938964844 38.90000534057617" data-asc="1.036"
-            initial={{ opacity: 0, y: 40 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{
-              delay: 0.15,
-              duration: 0.95,
-              ease: [0.165, 0.84, 0.44, 1],
-            }}
-            className="block w-[100px] row-start-2 mb-8 md:mb-6"
-          >
-            <g fill="#000000"><g fill="#000000" transform="translate(0, 0)"><path d="M37.10 43.60L39.10 43.60L39.10 51.80L19.50 51.80L19.50 43.60L22.50 43.60L21.70 39.60L14.90 39.60L14.10 43.60L17.10 43.60L17.10 51.80L0 51.80L0 43.60L2 43.60L10.45 12.90L28.65 12.90L37.10 43.60M16 34.30L20.60 34.30L18.55 24.35L18.05 24.35L16 34.30ZM40.70 51.80L40.70 43.60L43.20 43.60L43.20 21.10L40.70 21.10L40.70 12.90L59.70 12.90L59.70 21.10L57.20 21.10L57.20 43.60L59.70 43.60L59.70 51.80L40.70 51.80ZM76.70 51.80L76.70 43.60L79.20 43.60L79.20 21.10L76.70 21.10L76.70 12.90L97.80 12.90L97.80 21.10L93.20 21.10L93.20 43.60L97.70 43.60L97.70 39L107.65 39L107.65 51.80L76.70 51.80ZM146.05 43.60L148.05 43.60L148.05 51.80L128.45 51.80L128.45 43.60L131.45 43.60L130.65 39.60L123.85 39.60L123.05 43.60L126.05 43.60L126.05 51.80L108.95 51.80L108.95 43.60L110.95 43.60L119.40 12.90L137.60 12.90L146.05 43.60M124.95 34.30L129.55 34.30L127.50 24.35L127 24.35L124.95 34.30ZM186.90 12.90L202.90 12.90L202.90 21.10L200.90 21.10L193.45 51.80L178.50 51.80L173.95 30.20L173.45 30.20L168.65 51.80L153.70 51.80L145.75 21.10L143.75 21.10L143.75 12.90L162.25 12.90L162.25 21.10L160.35 21.10L162.30 33.85L162.80 33.85L167.55 12.90L181.95 12.90L186.35 33.85L186.85 33.85L188.80 21.10L186.90 21.10L186.90 12.90ZM226.35 12.90L241.70 12.90L241.70 21.10L239.70 21.10L230.05 38.40L230.05 43.60L232.55 43.60L232.55 51.80L213.55 51.80L213.55 43.60L216.05 43.60L216.05 38.40L206.10 21.10L204.10 21.10L204.10 12.90L223.45 12.90L223.45 21.10L221.70 21.10L224.65 28.85L225.15 28.85L228.10 21.10L226.35 21.10L226.35 12.90ZM243.30 51.80L243.30 43.60L245.80 43.60L245.80 21.10L243.30 21.10L243.30 12.90L277.05 12.90L277.05 28.00L265.85 28.00L265.85 21.10L259.80 21.10L259.80 29.00L264.20 29.00L264.20 34.70L259.80 34.70L259.80 43.60L265.85 43.60L265.85 35.70L277.05 35.70L277.05 51.80L243.30 51.80ZM278.95 43.60L281.45 43.60L281.45 21.10L278.95 21.10L278.95 12.90L301.90 12.90Q308.35 12.90 311.75 15.55Q315.15 18.20 315.15 24.15Q315.15 27.50 313.80 29.95Q312.45 32.40 309.95 33.35L310 33.85Q314.80 34.60 314.80 39.75L314.80 43.60L317.15 43.60L317.15 51.80L301.30 51.80L301.30 40.05Q301.30 38.10 300.72 37.10Q300.15 36.10 298.93 35.75Q297.70 35.40 295.45 35.40L295.45 43.60L298.75 43.60L298.75 51.80L278.95 51.80L278.95 43.60M298.15 29.30Q299.60 29.30 300.32 28.53Q301.05 27.75 301.05 26.10L301.05 24.30Q301.05 22.65 300.32 21.88Q299.60 21.10 298.15 21.10L295.45 21.10L295.45 29.30L298.15 29.30Z"/></g></g>
-          </motion.svg>
+        <motion.img
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -10 }}
+          transition={{ duration: 0.5, ease: [0.23, 1, 0.32, 1] }}
+          key="John"
+          src="/slide-1.jpg"
+          alt="law photo"
+          className="fixed w-full h-screen top-0 left-0 object-cover"
+        />
 
-          <motion.h1
-            initial={{ opacity: 0, y: 40 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{
-              delay: 0.15,
-              duration: 0.95,
-              ease: [0.165, 0.84, 0.44, 1],
-            }}
-            className="relative md:ml-[-10px] md:mb-[37px] font-extrabold text-[16vw] md:text-[130px] font-inter text-[#1E2B3A] leading-[0.9] tracking-[-2px] z-[100]"
+        <motion.div
+          initial={{ opacity: 0, y: 40 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{
+            delay: 0.15,
+            duration: 0.95,
+            ease: [0.165, 0.84, 0.44, 1],
+          }}
+          className="z-50 fixed top-0 left-[-2px] flex flex-col items-center justify-center w-[80%] h-[90vh] mx-0 mb-0 mt-8 md:mt-0 md:mb-[35px] max-w-2xl md:space-x-8"
+        >
+          <Box
+            maxW="380px"
+            w="350px"
+            mx="auto"
+            mt="0"
+            p="8"
+            borderWidth="1px"
+            borderRadius="lg"
+            boxShadow="sm"
+            bg="white"
           >
-            Elevate your <br />
-            legal <span className="text-[#407BBF]">strategy</span>
-            <span className="font-inter text-[#407BBF]">.</span>
-          </motion.h1>
-          <motion.div
-            initial={{ opacity: 0, y: 40 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{
-              delay: 0.15,
-              duration: 0.95,
-              ease: [0.165, 0.84, 0.44, 1],
+            <Heading as="h1" size="md" mb="8" textAlign="center" className="font-inter text-[#1E2B3A]">
+              Welcome Back
+            </Heading>
+            <form onSubmit={handleSubmit(onSubmit)}>
+              <VStack spacing="4">
+                <FormControl isInvalid={!!errors.email}>
+                  <FormLabel>Email Address</FormLabel>
+                  <InputGroup>
+                    <InputLeftElement pointerEvents='none'>
+                      <EmailIcon color='gray.300' />
+                    </InputLeftElement>
+                    <Input type="email" placeholder="Enter your email" {...register("email")} />
+                  </InputGroup>
+                  <FormErrorMessage>{errors.email?.message}</FormErrorMessage>
+                </FormControl>
+                <FormControl isInvalid={!!errors.password}>
+                  <FormLabel>Password</FormLabel>
+                  <InputGroup>
+                    <InputLeftElement pointerEvents='none'>
+                      <UnlockIcon color='gray.300' />
+                    </InputLeftElement>
+                    <Input type="password" placeholder="Enter your password" {...register("password")} />
+                  </InputGroup>
+                  <FormErrorMessage>{errors.password?.message}</FormErrorMessage>
+                </FormControl>
+                <Button colorScheme="blue" type="submit" isLoading={loading} width="full">
+                  Login Now
+                </Button>
+              </VStack>
+            </form>
+          </Box>
+          <Box
+            maxW="380px"
+            w="350px"
+            mx="auto"
+            mt="15px"
+            px="8"
+            py="4"
+            borderWidth="1px"
+            borderRadius="lg"
+            boxShadow="sm"
+            bg="white"
+            style={{
+              marginLeft: '0 !important',
+              marginRight: '0 !important',
             }}
-            className="flex flex-row justify-center z-20 mx-0 mb-0 mt-8 md:mt-0 md:mb-[35px] max-w-2xl md:space-x-8"
           >
-            <div className="w-1/2">
-              <h2 className="flex items-center font-semibold text-[1em] text-[#1a2b3b]">
-                AI Legal Assistance
-              </h2>
-              <p className="text-[14px] leading-[20px] text-[#1a2b3b] font-normal">
-                Full access powerful AI-driven tools to streamline your legal processes.
-              </p>
-            </div>
-            <div className="w-1/2">
-              <h2 className="flex items-center font-semibold text-[1em] text-[#1a2b3b]">
-                Comprehensive Database
-              </h2>
-              <p className="text-[14px] leading-[20px] text-[#1a2b3b] font-normal">
-                Leverage insights from over 200,000 solved cases to strengthen your legal strategy.
-              </p>
-            </div>
-          </motion.div>
-
-          <div className="flex gap-[15px] mt-8 md:mt-0">
-            <motion.div
-              initial={{ opacity: 0, y: 40 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{
-                delay: 0.65,
-                duration: 0.55,
-                ease: [0.075, 0.82, 0.965, 1],
-              }}
-            >
-              <Link
-                href="/login"
-                className="group rounded-full px-4 py-2 text-[13px] font-semibold transition-all flex items-center justify-center bg-[#f5f7f9] text-[#1E2B3A] no-underline active:scale-95 scale-100 duration-75"
-                style={{
-                  boxShadow: "0 1px 1px #0c192714, 0 1px 3px #0c192724",
+            <div className="flex gap-[15px]">
+              <motion.div
+                initial={{ opacity: 0, y: 40 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{
+                  delay: 0.65,
+                  duration: 0.55,
+                  ease: [0.075, 0.82, 0.965, 1],
                 }}
               >
-                <span className="mr-2"> Try it out </span>
-                <svg
-                  className="w-5 h-5"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  xmlns="http://www.w3.org/2000/svg"
+                <Link
+                  href="/signup"
+                  className="group rounded-full px-4 py-2 text-[13px] font-semibold transition-all flex items-center justify-center bg-[#f5f7f9] text-[#1E2B3A] no-underline active:scale-95 scale-100 duration-75"
+                  style={{
+                    boxShadow: "0 1px 1px #0c192714, 0 1px 3px #0c192724",
+                  }}
                 >
-                  <path
-                    d="M13.75 6.75L19.25 12L13.75 17.25"
-                    stroke="#1E2B3A"
-                    strokeWidth="1.5"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                  <path
-                    d="M19 12H4.75"
-                    stroke="#1E2B3A"
-                    strokeWidth="1.5"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                </svg>
-              </Link>
-            </motion.div>
-            <motion.div
-              initial={{ opacity: 0, y: 40 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{
-                delay: 0.55,
-                duration: 0.55,
-                ease: [0.075, 0.82, 0.965, 1],
-              }}
-            >
-              <Link
-                href="https://github.com/abi-seth"
-                target="_blank"
-                className="group rounded-full pl-[8px] min-w-[110px] pr-4 py-2 text-[13px] font-semibold transition-all flex items-center justify-center bg-[#1E2B3A] text-white hover:[linear-gradient(0deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.1)), #0D2247] no-underline flex gap-x-2  active:scale-95 scale-100 duration-75"
-                style={{
-                  boxShadow:
-                    "0px 1px 4px rgba(13, 34, 71, 0.17), inset 0px 0px 0px 1px #061530, inset 0px 0px 0px 2px rgba(255, 255, 255, 0.1)",
-                }}
-              >
-                <span className="w-5 h-5 rounded-full bg-[#407BBF] flex items-center justify-center">
+                  <span className="mr-2"> Create account </span>
                   <svg
-                    className="w-[16px] h-[16px] text-white"
-                    fill="none"
+                    className="w-5 h-5"
                     viewBox="0 0 24 24"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
                   >
                     <path
-                      stroke="currentColor"
+                      d="M13.75 6.75L19.25 12L13.75 17.25"
+                      stroke="#1E2B3A"
+                      strokeWidth="1.5"
                       strokeLinecap="round"
                       strokeLinejoin="round"
-                      strokeWidth="2"
-                      d="M4.75 7.75C4.75 6.64543 5.64543 5.75 6.75 5.75H17.25C18.3546 5.75 19.25 6.64543 19.25 7.75V16.25C19.25 17.3546 18.3546 18.25 17.25 18.25H6.75C5.64543 18.25 4.75 17.3546 4.75 16.25V7.75Z"
-                    ></path>
+                    />
                     <path
-                      stroke="currentColor"
+                      d="M19 12H4.75"
+                      stroke="#1E2B3A"
+                      strokeWidth="1.5"
                       strokeLinecap="round"
                       strokeLinejoin="round"
-                      strokeWidth="2"
-                      d="M5.5 6.5L12 12.25L18.5 6.5"
-                    ></path>
+                    />
                   </svg>
-                </span>
-                Talk To Us
-              </Link>
-            </motion.div>
-          </div>
-        </main>
+                </Link>
+              </motion.div>
+              <motion.div
+                initial={{ opacity: 0, y: 40 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{
+                  delay: 0.55,
+                  duration: 0.55,
+                  ease: [0.075, 0.82, 0.965, 1],
+                }}
+              >
+                <Link
+                  href="https://github.com/abi-seth"
+                  target="_blank"
+                  className="group rounded-full pl-[8px] min-w-[110px] pr-4 py-2 text-[13px] font-semibold transition-all flex items-center justify-center bg-[#1E2B3A] text-white hover:[linear-gradient(0deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.1)), #0D2247] no-underline flex gap-x-2  active:scale-95 scale-100 duration-75"
+                  style={{
+                    boxShadow:
+                      "0px 1px 4px rgba(13, 34, 71, 0.17), inset 0px 0px 0px 1px #061530, inset 0px 0px 0px 2px rgba(255, 255, 255, 0.1)",
+                  }}
+                >
+                  <span className="w-5 h-5 rounded-full bg-[#407BBF] flex items-center justify-center">
+                    <svg
+                      className="w-[16px] h-[16px] text-white"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        stroke="currentColor"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth="2"
+                        d="M4.75 7.75C4.75 6.64543 5.64543 5.75 6.75 5.75H17.25C18.3546 5.75 19.25 6.64543 19.25 7.75V16.25C19.25 17.3546 18.3546 18.25 17.25 18.25H6.75C5.64543 18.25 4.75 17.3546 4.75 16.25V7.75Z"
+                      ></path>
+                      <path
+                        stroke="currentColor"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth="2"
+                        d="M5.5 6.5L12 12.25L18.5 6.5"
+                      ></path>
+                    </svg>
+                  </span>
+                  Guest
+                </Link>
+              </motion.div>
+            </div>
+          </Box>
+        </motion.div>
 
         <div
-          className="fixed top-0 right-0 w-[80%] md:w-1/2 h-screen bg-[#1F2B3A]/20"
-          style={{
-            clipPath:
-              "polygon(100px 0,100% 0,calc(100% + 225px) 100%, 480px 100%)",
-          }}
+          className="z-20 fixed top-0 left-0 w-[80%] md:w-1/2 h-screen bg-[#1F2B3A]/20"
+          // style={{
+          //   clipPath:
+          //     "polygon(100px 0,100% 0,calc(100% + 225px) 100%, 480px 100%)",
+          // }}
         ></div>
 
         <motion.canvas
@@ -193,13 +276,13 @@ export default function Home() {
             duration: 1,
             ease: [0.075, 0.82, 0.965, 1],
           }}
-          style={{
-            clipPath:
-              "polygon(100px 0,100% 0,calc(100% + 225px) 100%, 480px 100%)",
-          }}
+          // style={{
+          //   clipPath:
+          //     "polygon(100px 0,100% 0,calc(100% + 225px) 100%, 480px 100%)",
+          // }}
           id="gradient-canvas"
           data-transition-in
-          className="z-50 fixed top-0 right-[-2px] w-[80%] md:w-1/2 h-screen bg-[#c3e4ff]"
+          className="fixed top-0 left-[-2px] w-[80%] md:w-1/2 h-screen bg-[#c3e4ff]"
         ></motion.canvas>
         <div className="h-[60px] bg-[#1D2B3A] fixed bottom-0 z-20 w-full flex flex-row items-center justify-evenly">
           <p className="text-white/80 text-base md:text-lg font-semibold md:leading-[60px] whitespace-nowrap flex flex-row">
