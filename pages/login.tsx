@@ -98,7 +98,7 @@ export default function LoginPage() {
           key="John"
           src="/slide-1.jpg"
           alt="law photo"
-          className="fixed w-full h-screen top-0 left-0 object-cover"
+          className="fixed top-0 left-0 object-cover w-full h-screen"
         />
 
         <motion.div
@@ -143,7 +143,7 @@ export default function LoginPage() {
                     <InputLeftElement pointerEvents='none'>
                       <UnlockIcon color='gray.300' />
                     </InputLeftElement>
-                    <Input type="password" placeholder="Enter your password" {...register("password")} />
+                    <Input type="text" placeholder="Enter your password" {...register("password")} />
                   </InputGroup>
                   <FormErrorMessage>{errors.password?.message}</FormErrorMessage>
                 </FormControl>

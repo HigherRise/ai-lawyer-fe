@@ -11,7 +11,6 @@ import {
 import { SyncLoader, BeatLoader } from "react-spinners";
 import axios from "axios";
 import ReactMarkdown from "react-markdown";
-import { format } from "date-fns";
 import API_BASE_URL from "@/utils/constants";
 
 function classNames(...classes: string[]): string {
@@ -23,71 +22,65 @@ type Message = {
   text: string;
 };
 
+type Chat = {
+  id: string;
+  title: string;
+  date: string;
+};
+
 export default function ChatPage() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [message, setMessage] = useState<string>("");
-  const [history, setHistory] = useState<string[][]>([]);
-  const [chats, setChats] = useState<
-    { id: string; title: string; date: string }[]
-  >([]);
+  const [chats, setChats] = useState<Chat[]>([]);
   const [currentChatId, setCurrentChatId] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(false);
   const [loadingChats, setLoadingChats] = useState<boolean>(true);
-
   const messageEndRef = useRef<HTMLDivElement | null>(null);
 
-  useEffect(() => {
+  const fetchHistory = async (): Promise<void> => {
     setLoadingChats(true);
-    const savedChats = JSON.parse(localStorage.getItem("chats") || "[]");
-    const savedHistory = JSON.parse(localStorage.getItem("history") || "{}");
+    try {
+      const response = await axios.get(`${API_BASE_URL}/admin/history/user-history`, {
+        params: {
+          dateFrom: "",
+          dateTo: new Date().toISOString(),
+          page: "1",
+          limit: "100",
+          group: "month",
+        },
+      });
 
-    setChats(savedChats);
-    if (savedChats.length > 0) {
-      setCurrentChatId(savedChats[0].id);
-      setHistory(savedHistory[savedChats[0].id] || []);
+      const historyData = response.data || [];
+      setChats(
+        historyData.map((chat: any) => ({
+          id: chat.id,
+          title: chat.title,
+          date: chat.date,
+        }))
+      );
+    } catch (error) {
+      console.error("Error fetching history:", error);
+    } finally {
+      setLoadingChats(false);
     }
-    setLoadingChats(false);
-  }, []);
+  };
 
   useEffect(() => {
-    localStorage.setItem("chats", JSON.stringify(chats));
-
-    const allHistories = JSON.parse(localStorage.getItem("history") || "{}");
-    allHistories[currentChatId] = history;
-    localStorage.setItem("history", JSON.stringify(allHistories));
-  }, [chats, history, currentChatId]);
+    fetchHistory();
+  }, []);
 
   const sendMessage = async (): Promise<void> => {
     if (!message.trim()) return;
 
     const newMessage: Message = { sender: "user", text: message };
     setMessages((prev) => [...prev, newMessage]);
-    setHistory((prev) => [...prev, [message]]);
     setMessage("");
-
-    if (!chats.find((chat) => chat.id === currentChatId)) {
-      const newChat = {
-        id: currentChatId,
-        title: message,
-        date: new Date().toISOString(),
-      };
-      setChats((prev) => [...prev, newChat]);
-    } else {
-      setChats((prev) => {
-        return prev.map((chat) =>
-          chat.id === currentChatId && chat.title.startsWith("Chat")
-            ? { ...chat, title: message }
-            : chat
-        );
-      });
-    }
 
     setLoading(true);
 
     try {
       const response = await axios.post(`${API_BASE_URL}/ai/answer-question`, {
         question: message,
-        history,
       });
 
       const { answer } = response.data;
@@ -98,11 +91,6 @@ export default function ChatPage() {
           text: answer,
         };
         setMessages((prev) => [...prev, aiMessage]);
-        setHistory((prev) => {
-          const updated = [...prev];
-          updated[updated.length - 1][1] = answer;
-          return updated;
-        });
       }
     } catch (error) {
       console.error("Failed to fetch answer:", error);
@@ -117,27 +105,17 @@ export default function ChatPage() {
       ...prev,
       {
         id: newChatId,
-        title: `New Chat`,
+        title: "New Chat",
         date: new Date().toISOString(),
       },
     ]);
     setCurrentChatId(newChatId);
     setMessages([]);
-    setHistory([]);
   };
 
   const switchChat = (chatId: string) => {
     setCurrentChatId(chatId);
-    const allHistories = JSON.parse(localStorage.getItem("history") || "{}");
-    setHistory(allHistories[chatId] || []);
-    setMessages(
-      allHistories[chatId]
-        ?.map(([userMsg, aiMsg]: [string, string]) => [
-          { sender: "user", text: userMsg },
-          { sender: "ai", text: aiMsg },
-        ])
-        .flat() || []
-    );
+    setMessages([]);
   };
 
   useEffect(() => {
@@ -151,11 +129,14 @@ export default function ChatPage() {
   };
 
   const groupedChats = chats.reduce((acc, chat) => {
-    const monthYear = format(new Date(chat.date), "MMMM yyyy");
+    const monthYear = new Date(chat.date).toLocaleString("default", {
+      month: "long",
+      year: "numeric",
+    });
     if (!acc[monthYear]) acc[monthYear] = [];
     acc[monthYear].push(chat);
     return acc;
-  }, {} as Record<string, { id: string; title: string; date: string }[]>);
+  }, {} as Record<string, Chat[]>);
 
   return (
     <div className="relative flex justify-center items-center bg-[#F2F3F5] min-h-screen">

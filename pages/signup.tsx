@@ -104,7 +104,7 @@ export default function SignupPage() {
           key="John"
           src="/slide-1.jpg"
           alt="law photo"
-          className="fixed w-full h-screen top-0 left-0 object-cover"
+          className="fixed top-0 left-0 object-cover w-full h-screen"
         />
 
         <motion.div
