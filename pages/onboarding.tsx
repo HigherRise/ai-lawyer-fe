@@ -1254,17 +1254,15 @@ export default function DemoPage() {
                       </button>
                     </div>
                     <div>
-                      <button
-                        onClick={() => {
-                          setStep(3);
-                        }}
+                    <Link
+                        href="/login"
                         className="group rounded-full px-4 py-2 text-[13px] font-semibold transition-all flex items-center justify-center bg-[#1E2B3A] text-white hover:[linear-gradient(0deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.1)), #0D2247] no-underline flex gap-x-2  active:scale-95 scale-100 duration-75"
                         style={{
                           boxShadow:
-                            "0px 1px 4px rgba(13, 34, 71, 0.17), inset 0px 0px 0px 1px #061530, inset 0px 0px 0px 2px rgba(255, 255, 255, 0.1)",
+                          "0px 1px 4px rgba(13, 34, 71, 0.17), inset 0px 0px 0px 1px #061530, inset 0px 0px 0px 2px rgba(255, 255, 255, 0.1)",
                         }}
-                      >
-                        <span> Continue </span>
+                        >
+                        <span> Go to Login </span>
                         <svg
                           className="w-5 h-5"
                           viewBox="0 0 24 24"
@@ -1272,21 +1270,21 @@ export default function DemoPage() {
                           xmlns="http://www.w3.org/2000/svg"
                         >
                           <path
-                            d="M13.75 6.75L19.25 12L13.75 17.25"
-                            stroke="#FFF"
-                            strokeWidth="1.5"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
+                          d="M13.75 6.75L19.25 12L13.75 17.25"
+                          stroke="#FFF"
+                          strokeWidth="1.5"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
                           />
                           <path
-                            d="M19 12H4.75"
-                            stroke="#FFF"
-                            strokeWidth="1.5"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
+                          d="M19 12H4.75"
+                          stroke="#FFF"
+                          strokeWidth="1.5"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
                           />
                         </svg>
-                      </button>
+                        </Link>
                     </div>
                   </div>
                 </motion.div>
@@ -1338,7 +1336,7 @@ export default function DemoPage() {
                 <ul className="mb-auto list-none">
                   <li className="flex items-center list-none">
                     <p className="text-[12px] font-extrabold text-[#1E293B]">
-                      AI LAWYER
+                      LEX VOITHOS
                     </p>
                   </li>
                   <li className="mt-4 list-none flex items-center rounded-[9px] text-gray-900 py-[2px]">
@@ -1710,14 +1708,14 @@ export default function DemoPage() {
                             <div className="absolute inset-0 rounded-lg ring-1 ring-inset ring-zinc-900/[7.5%] group-hover:ring-zinc-900/10"></div>
                             <div className="relative flex flex-col h-full overflow-hidden">
                               <div className="flex items-center text-left text-[#1a2b3b]">
-                                <p>Why this company?</p>
+                                <p>Company Registration?</p>
                               </div>
                               <p className="text-wrap grow font-normal text-[7px]">
-                                Why do you want to work for Google?
+                                How to open business in Rwanda?
                               </p>
                               <div className="flex flex-row space-x-1">
                                 <p className="inline-flex items-center justify-center truncate rounded-full border-[0.5px] border-gray-300 px-[3px] text-[7px] font-normal hover:bg-gray-50">
-                                  Product Management
+                                  Business
                                 </p>
                                 <p className="inline-flex items-center justify-center truncate rounded-full border-[0.5px] border-[#D0E7DC] bg-[#F3FAF1] px-[3px] text-[7px] font-normal hover:bg-[#edf8ea]">
                                   <span className="flex items-center mr-1 text-emerald-600">

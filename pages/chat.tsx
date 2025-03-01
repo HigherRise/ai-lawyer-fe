@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { motion } from "framer-motion";
-import { HiOutlineArrowRight, HiOutlinePencilAlt } from "react-icons/hi";
+import { HiLogout, HiOutlineArrowRight, HiOutlineLogout, HiOutlinePencilAlt } from "react-icons/hi";
 import { SyncLoader, BeatLoader } from "react-spinners";
 import axios from "axios";
 import ReactMarkdown from "react-markdown";
@@ -71,12 +71,18 @@ export default function ChatPage() {
     }
   };
 
-  const formatHistoryDate = (dateString: string): string => {
+  const formatHistoryDate = (dateString: string | Date): string => {
+    if (!dateString) return "Invalid date";
+
     const date = new Date(dateString);
+    if (isNaN(date.getTime())) return "Invalid date";
+
     if (isToday(date)) return "Today";
     if (isYesterday(date)) return "Yesterday";
+
     return format(date, "MMMM d, yyyy");
   };
+
 
   const createNewChat = (): void => {
     const today = new Date().toISOString().split("T")[0]; // yyyy-mm-dd format
@@ -87,7 +93,7 @@ export default function ChatPage() {
       } else {
         switchChat(today);
       }
-      
+
       const newChatId = Date.now().toString();
       newHistory[today].push({
         _id: newChatId,
@@ -197,6 +203,14 @@ export default function ChatPage() {
     }
   };
 
+  const handleLogout = () => {
+    const confirmLogout = window.confirm("Are you sure you want to log out?");
+    if (confirmLogout) {
+      localStorage.removeItem("lex_voithos_access_token");
+      window.location.href = "/";
+    }
+  };
+
   return (
     <div className="relative flex justify-center items-center bg-[#F2F3F5] min-h-screen">
       <div className="relative z-10 w-full max-w-6xl bg-white shadow-lg rounded-lg overflow-hidden flex max-h-[85vh] min-h-[85vh]">
@@ -228,7 +242,7 @@ export default function ChatPage() {
                         : "",
                       loading ? "cursor-not-allowed" : "cursor-pointer"
                     )}
-                    onClick={loading ? () => {} : () => switchChat(date)}
+                    onClick={loading ? () => { } : () => switchChat(date)}
                   >
                     {formatHistoryDate(date)}
                   </h4>
@@ -239,12 +253,19 @@ export default function ChatPage() {
         </div>
         {/* Chat Window */}
         <div className="relative flex flex-col flex-grow">
-          <div className="p-6 border-b border-gray-300">
-            <h1 className="text-2xl font-bold">AI Lawyer</h1>
-            <p className="text-sm text-gray-500">
-              Your AI-powered legal assistant for navigating complex systems
-              worldwide.
-            </p>
+          <div className="p-6 border-b border-gray-300 flex justify-between items-center">
+            <div>
+              <h1 className="text-2xl font-bold">Lex Voithos</h1>
+              <p className="text-sm text-gray-500">
+                Your go to AI-powered legal assistant In Rwanda.
+              </p>
+            </div>
+            <button
+              onClick={handleLogout}
+              className="text-sm text-gray-500 hover:text-gray-700"
+            >
+              <HiOutlineLogout size={20} />
+            </button>
           </div>
           <div className="flex-1 p-6 space-y-4 overflow-y-auto">
             {messages.map((msg, idx) => (
@@ -254,7 +275,7 @@ export default function ChatPage() {
                     initial={{ opacity: 0, x: 50 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ duration: 0.5 }}
-                    className="ml-auto bg-[#1E2B3A] text-white p-3 rounded-md shadow-none max-w-[60%]"
+                    className="mb-4 ml-auto bg-[#1E2B3A] text-white p-3 rounded-md shadow-none max-w-[60%]"
                   >
                     <ReactMarkdown>{msg.question}</ReactMarkdown>
                   </motion.div>

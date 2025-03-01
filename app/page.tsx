@@ -98,7 +98,7 @@ export default function Home() {
               }}
             >
               <Link
-                href="/login"
+                href="/onboarding"
                 className="group rounded-full px-4 py-2 text-[13px] font-semibold transition-all flex items-center justify-center bg-[#f5f7f9] text-[#1E2B3A] no-underline active:scale-95 scale-100 duration-75"
                 style={{
                   boxShadow: "0 1px 1px #0c192714, 0 1px 3px #0c192724",
@@ -138,7 +138,7 @@ export default function Home() {
               }}
             >
               <Link
-                href="https://github.com/abi-seth"
+                href="contact@highrise.rw"
                 target="_blank"
                 className="group rounded-full pl-[8px] min-w-[110px] pr-4 py-2 text-[13px] font-semibold transition-all flex items-center justify-center bg-[#1E2B3A] text-white hover:[linear-gradient(0deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.1)), #0D2247] no-underline flex gap-x-2  active:scale-95 scale-100 duration-75"
                 style={{
