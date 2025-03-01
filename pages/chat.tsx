@@ -255,7 +255,7 @@ export default function ChatPage() {
         <div className="relative flex flex-col flex-grow">
           <div className="p-6 border-b border-gray-300 flex justify-between items-center">
             <div>
-              <h1 className="text-2xl font-bold">Lex Voithos</h1>
+              <h1 className="text-2xl font-bold">LEX</h1>
               <p className="text-sm text-gray-500">
                 Your go to AI-powered legal assistant In Rwanda.
               </p>
