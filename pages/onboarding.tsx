@@ -1601,7 +1601,7 @@ export default function DemoPage() {
                       className="text-[#1a2b3b] text-[14px] leading-[18px] font-semibold absolute"
                     >
                       {selected.name === "Straightforward Cases"
-                        ? "Tell me about yourself"
+                        ? "Tell us about yourself"
                         : selectedInterviewer.name === "John"
                         ? "Do you have any evidences for this crime? Or witnesses"
                         : selectedInterviewer.name === "Richard"
@@ -1609,20 +1609,8 @@ export default function DemoPage() {
                         : "Any key points and witness valuable insights to point out"}
                     </motion.span>
 
-                    <ul className="mt-[28px] flex">
-                      {selected.name === "Straightforward Cases" ? (
-                        <li className="list-none max-w-[400px]">
-                          Start off by walking me through your resume. Perhaps
-                          begin with your internships in college and move to
-                          more recent projects.
-                        </li>
-                      ) : (
-                        <li className="list-none max-w-[400px]">
-                          Start off by explaining what the function does, and
-                          its time and space complexities. Then go into how you
-                          would optimize it.
-                        </li>
-                      )}
+                    <ul className="mt-[16px] flex">
+                      
                     </ul>
                   </div>
                 )}
@@ -1803,15 +1791,11 @@ export default function DemoPage() {
                             <div className="absolute inset-0 rounded-lg ring-1 ring-inset ring-zinc-900/[7.5%] group-hover:ring-zinc-900/10"></div>
                             <div className="relative flex flex-col h-full overflow-hidden">
                               <div className="flex items-center text-left text-[#1a2b3b]">
-                                <p>Tell me about yourself</p>
+                                <p>Tell us about yourself</p>
                               </div>
-                              <p className="text-wrap grow font-normal text-[7px]">
-                                Walk me through your resume, projects, and
-                                anything you feel is relevant to your story.
-                              </p>
                               <div className="flex flex-row space-x-1">
                                 <p className="inline-flex items-center justify-center truncate rounded-full border-[0.5px] border-gray-300 px-[3px] text-[7px] font-normal hover:bg-gray-50">
-                                  Product Management
+                                  Administrative Laws
                                 </p>
                                 <p className="inline-flex items-center justify-center truncate rounded-full border-[0.5px] border-[#D0E7DC] bg-[#F3FAF1] px-[3px] text-[7px] font-normal hover:bg-[#edf8ea]">
                                   <span className="flex items-center mr-1 text-emerald-600">
