@@ -72,9 +72,10 @@ export default function ChatPage() {
   };
 
   const formatHistoryDate = (dateString: string | Date): string => {
-    if (!dateString) return "Invalid date";
+    // const now = new Date();
+    // if (!dateString) return "Invalid date";
 
-    const date = new Date(dateString);
+    const date = new Date(); //TODO pass dateString
     if (isNaN(date.getTime())) return "Invalid date";
 
     if (isToday(date)) return "Today";
