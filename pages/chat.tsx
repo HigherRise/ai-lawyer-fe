@@ -190,7 +190,7 @@ export default function ChatPage() {
       fetchHistory(token);
       setToken(token);
     } else {
-      window.location.href = "/login";
+      window.location.href = "/";
     }
   }, []);
 
