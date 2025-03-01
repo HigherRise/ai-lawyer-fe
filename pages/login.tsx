@@ -143,7 +143,7 @@ export default function LoginPage() {
                     <InputLeftElement pointerEvents='none'>
                       <UnlockIcon color='gray.300' />
                     </InputLeftElement>
-                    <Input type="text" placeholder="Enter your password" {...register("password")} />
+                    <Input type="password" placeholder="Enter your password" {...register("password")} />
                   </InputGroup>
                   <FormErrorMessage>{errors.password?.message}</FormErrorMessage>
                 </FormControl>
