@@ -188,7 +188,7 @@ export default function ChatPage() {
   }, []);
 
   useEffect(() => {
-    messageEndRef.current?.scrollIntoView({ behavior: "instant" });
+    messageEndRef.current?.scrollIntoView({ behavior: "auto" });
   }, [messages]);
 
   const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>): void => {
